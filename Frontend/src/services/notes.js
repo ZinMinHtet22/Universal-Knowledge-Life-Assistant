@@ -1,32 +1,67 @@
-import axios from 'axios';
-import { getToken } from './auth';
+import axios from "axios";
+import { config } from "./config";
 
-const API_URL = 'http://localhost:8000/api/notes';
+const api = axios.create({
+  baseURL: config.API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-const getAuthHeaders = () => {
-  return { headers: { Authorization: `Bearer ${getToken()}` } };
-};
+api.interceptors.request.use((req) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    req.headers.Authorization = `Bearer ${token}`;
+  }
+  return req;
+});
 
 export const getNotes = async () => {
-  const response = await axios.get(`${API_URL}/`, getAuthHeaders());
-  return response.data;
+  try {
+    const response = await api.get("/api/v1/notes");
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to load notes";
+    return { data: null, error: message };
+  }
 };
 
-export const createNote = async (noteData) => {
-  const response = await axios.post(`${API_URL}/`, noteData, getAuthHeaders());
-  return response.data;
+export const getNote = async (noteId) => {
+  try {
+    const response = await api.get(`/api/v1/notes/${noteId}`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to load note";
+    return { data: null, error: message };
+  }
 };
 
-export const updateNote = async (id, noteData) => {
-  const response = await axios.put(`${API_URL}/${id}`, noteData, getAuthHeaders());
-  return response.data;
+export const createNote = async (note) => {
+  try {
+    const response = await api.post("/api/v1/notes", note);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to create note";
+    return { data: null, error: message };
+  }
 };
 
-export const deleteNote = async (id) => {
-  await axios.delete(`${API_URL}/${id}`, getAuthHeaders());
+export const updateNote = async (noteId, updates) => {
+  try {
+    const response = await api.put(`/api/v1/notes/${noteId}`, updates);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to update note";
+    return { data: null, error: message };
+  }
 };
 
-export const summarizeNote = async (id) => {
-  const response = await axios.post(`${API_URL}/${id}/summarize`, {}, getAuthHeaders());
-  return response.data;
+export const deleteNote = async (noteId) => {
+  try {
+    const response = await api.delete(`/api/v1/notes/${noteId}`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to delete note";
+    return { data: null, error: message };
+  }
 };

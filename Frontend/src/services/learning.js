@@ -1,32 +1,67 @@
-import axios from 'axios';
-import { getToken } from './auth';
+import axios from "axios";
+import { config } from "./config";
 
-const API_URL = 'http://localhost:8000/api/learning';
+const api = axios.create({
+  baseURL: config.API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-const getAuthHeaders = () => {
-  return { headers: { Authorization: `Bearer ${getToken()}` } };
+api.interceptors.request.use((req) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    req.headers.Authorization = `Bearer ${token}`;
+  }
+  return req;
+});
+
+export const getLearningPaths = async () => {
+  try {
+    const response = await api.get("/api/v1/learning/paths");
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to load learning paths";
+    return { data: null, error: message };
+  }
 };
 
-export const getTopics = async () => {
-  const response = await axios.get(`${API_URL}/topics`, getAuthHeaders());
-  return response.data;
+export const getLearningPath = async (pathId) => {
+  try {
+    const response = await api.get(`/api/v1/learning/paths/${pathId}`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to load learning path";
+    return { data: null, error: message };
+  }
 };
 
-export const createTopic = async (topic_name, difficulty) => {
-  const response = await axios.post(`${API_URL}/topics`, { topic_name, difficulty }, getAuthHeaders());
-  return response.data;
+export const createLearningPath = async (path) => {
+  try {
+    const response = await api.post("/api/v1/learning/paths", path);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to create learning path";
+    return { data: null, error: message };
+  }
 };
 
-export const getFlashcards = async (topicId) => {
-  const response = await axios.get(`${API_URL}/topics/${topicId}/flashcards`, getAuthHeaders());
-  return response.data;
+export const updateProgress = async (pathId, progress) => {
+  try {
+    const response = await api.put(`/api/v1/learning/paths/${pathId}/progress`, progress);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to update progress";
+    return { data: null, error: message };
+  }
 };
 
-export const getQuizzes = async (topicId) => {
-  const response = await axios.get(`${API_URL}/topics/${topicId}/quizzes`, getAuthHeaders());
-  return response.data;
-};
-
-export const deleteTopic = async (topicId) => {
-  await axios.delete(`${API_URL}/topics/${topicId}`, getAuthHeaders());
+export const deleteLearningPath = async (pathId) => {
+  try {
+    const response = await api.delete(`/api/v1/learning/paths/${pathId}`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    const message = error.response?.data?.detail || error.message || "Failed to delete learning path";
+    return { data: null, error: message };
+  }
 };

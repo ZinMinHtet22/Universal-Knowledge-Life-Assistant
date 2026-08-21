@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/auth';
+const API_URL = 'http://127.0.0.1:8000/api/auth';
 
 // FIXME: For MVP we use localStorage. Migrate to HTTP-only cookies before production.
 export const setToken = (token) => {
